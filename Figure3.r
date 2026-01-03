@@ -21,6 +21,10 @@ library(grid)
 library(lattice)
 library(readxl)
 library(data.table)
+library(ggsci)
+library(forcats)
+library(reshape2)
+
 
 # Single-cell specific tools
 library(Nebulosa) # For density plots
@@ -110,11 +114,59 @@ prop_test <- permutation_test(
 )
 
 # Filter results for CD4 only to clean up plot
+require("scProportionTest")
+prop_test <- sc_utils(PBMC.subset)
+prop_test <- permutation_test(
+  prop_test, 
+  cluster_identity = "cell.type.fine",
+  sample_1 = names(table(PBMC.subset$id_new))[1], sample_2 = names(table(PBMC.subset$id_new))[2],
+  sample_identity = "id_new"
+)
 prop_test_mod <- prop_test
-prop_test_mod@results$permutation <- prop_test@results$permutation[grep("CD4", prop_test@results$permutation$clusters),]
+prop_test_mod@results$permutation <- prop_test@results$permutation[grep("CD4",prop_test@results$permutation$clusters),]
 
-pne_prop <- permutation_plot(prop_test_mod, log2FD_threshold = 0.7, FDR_threshold = 0.01)
+pne_prop<-permutation_plot(prop_test_mod,log2FD_threshold = 0.7, FDR_threshold = 0.01)
+
+prop_test_new <- sc_utils(PBMC.subset)
+prop_test_new <- permutation_test(
+  prop_test_new, 
+  cluster_identity = "cell.type.fine",
+  sample_1 = names(table(PBMC.subset$id_new))[2], sample_2 = names(table(PBMC.subset$id_new))[3],
+  sample_identity = "id_new"
+)
+prop_test_mod2 <- prop_test_new
+prop_test_mod2@results$permutation <- prop_test_new@results$permutation[grep("CD4",prop_test_new@results$permutation$clusters),]
+
+pne_prop2<-permutation_plot(prop_test_mod2,log2FD_threshold = 0.7, FDR_threshold = 0.01)
+
+# Figure 3C
+p3c <- merge(prop_test_mod2@results$permutation[,c(1:3)], prop_test_mod@results$permutation[,c(1:2)], by = "clusters") %>% 
+  melt() %>% 
+  mutate(values = round(100*value, 2)) %>% 
+  group_by(clusters) %>% 
+  # mutate(total = sum(values)) %>% 
+  ungroup() %>% 
+  ggplot(aes(x=clusters, y=values, fill=variable)) +
+  geom_bar(stat="identity", position="stack") +
+  scale_fill_aaas(palette = "default", alpha = 1) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  theme_bw() +
+  theme(axis.title = element_blank(), axis.line = element_blank(),
+        axis.ticks = element_blank(), axis.text.x = element_blank(),
+        plot.title = element_text(size = 20, face = "bold", hjust = 0)) +
+  theme(legend.position = 'bottom') +
+  theme(legend.title = element_blank()) + 
+  coord_flip()
+
+# Figure 3D
+pdf(paste0(BASE_DIR. "/results/Fig3d1_,format(Sys.time(), "%Y-%m-%d %H-%M-%S"),".pdf"), width = 5, height =3)
 print(pne_prop)
+dev.off()
+pdf(paste0(BASE_DIR, "/results/Fig3d2_supp_",format(Sys.time(), "%Y-%m-%d %H-%M-%S"),".pdf"), width = 5, height =3)
+print(pne_prop2)
+dev.off()
 
 # ==============================================================================
 # 5. Differential Expression Analysis
