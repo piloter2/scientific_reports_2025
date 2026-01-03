@@ -303,7 +303,77 @@ PBMC.subset <- FindClusters(
   n.iter = 100
 )
 
+# 1. Coarse Annotation (Based on res.0.3)
+coarse_map_0.3 <- c(
+  "0"  = "CD4+ T", "1"  = "B", "2"  = "CD8+ T", "3"  = "CD8+ T",
+  "4"  = "Monocyte", "5"  = "NK", "6"  = "CD4+ T", "7"  = "CD8+ T",
+  "8"  = "B", "9"  = "CD4+ T", "10" = "gdT", "11" = "CD8+ T",
+  "12" = "Platelet", "13" = "Monocyte", "14" = "PB", "15" = "CD8+ T",
+  "16" = "PB", "17" = "Granulocyte", "18" = "pDC", "19" = "NK",
+  "20" = "mDC", "21" = "RBC"
+)
+
+# Apply base coarse labels
+PBMC.subset$cell.type.coarse <- coarse_map_0.3[as.character(PBMC.subset$SCT_snn_res.0.3)]
+
+# Refine Coarse Annotation (Based on res.2 specific clusters)
+coarse_map_2 <- c(
+  "15" = "gdT", "21" = "CD4+ T", "23" = "CD8+ T", "24" = "gdT",
+  "37" = "gdT", "41" = "CD4+ T", "44" = "gdT", "51" = "B",
+  "52" = "CD4+ T", "55" = "SC & Eosinophil"
+)
+
+# Identify cells that need updates based on res.2
+idx_update_coarse <- as.character(PBMC.subset$SCT_snn_res.2) %in% names(coarse_map_2)
+PBMC.subset$cell.type.coarse[idx_update_coarse] <- coarse_map_2[as.character(PBMC.subset$SCT_snn_res.2[idx_update_coarse])]
+
+# Handle complex condition: res.2 IN {0, 5, 36, 49} AND coarse == "CD4+ T"
+# Note: Since they are already "CD4+ T", this just re-confirms it, but matches original logic.
+clusters_cd4_check <- c("0", "5", "36", "49")
+idx_cd4_complex <- (as.character(PBMC.subset$SCT_snn_res.2) %in% clusters_cd4_check) & 
+                   (PBMC.subset$cell.type.coarse == "CD4+ T")
+if(any(idx_cd4_complex)) {
+  PBMC.subset$cell.type.coarse[idx_cd4_complex] <- "CD4+ T"
+}
+
+# -----------------------------------------------------------------------------
+
+# 2. Fine Annotation (Based on res.0.3)
+fine_map_0.3 <- c(
+  "0"  = "CD4n T IL7Rlow a", "1"  = "B 1", "2"  = "CD8n T a", "3"  = "CD8m T",
+  "4"  = "CD14 Monocyte", "5"  = "NK 1", "6"  = "CD4m T", "7"  = "CD8 T a",
+  "8"  = "B 2", "9"  = "CD4n T IL7Rlow c", "10" = "gdT b", "11" = "CD8n T b",
+  "12" = "Platelet", "13" = "CD16 Monocyte", "14" = "IgA PB", "15" = "CD8eff T",
+  "16" = "IgB PB", "17" = "Granulocyte_activated", "18" = "pDC", "19" = "NK 2",
+  "20" = "mDC", "21" = "RBC"
+)
+
+# Apply base fine labels
+PBMC.subset$cell.type.fine <- fine_map_0.3[as.character(PBMC.subset$SCT_snn_res.0.3)]
+
+# Refine Fine Annotation (Based on res.2)
+fine_map_2 <- c(
+  "15" = "gdT b", "21" = "CD4 Treg", "23" = "CD8 T b", "24" = "gdT a",
+  "37" = "gdT c", "41" = "CD4effm T", "44" = "gdT d", "51" = "B Class-switched",
+  "52" = "CD4n T IL7Rlow b", "55" = "SC & Eosinophil"
+)
+
+# Apply simple res.2 updates
+idx_update_fine <- as.character(PBMC.subset$SCT_snn_res.2) %in% names(fine_map_2)
+PBMC.subset$cell.type.fine[idx_update_fine] <- fine_map_2[as.character(PBMC.subset$SCT_snn_res.2[idx_update_fine])]
+
+# Handle complex conditions: res.2 specific cluster AND coarse == "CD4+ T"
+# Cluster 0 -> CD4n T IL7Rhigh a
+idx_0 <- (PBMC.subset$SCT_snn_res.2 == "0") & (PBMC.subset$cell.type.coarse == "CD4+ T")
+PBMC.subset$cell.type.fine[idx_0] <- "CD4n T IL7Rhigh a"
+
+# Clusters 5, 36, 49 -> CD4n T IL7Rlow a
+idx_low_a <- (as.character(PBMC.subset$SCT_snn_res.2) %in% c("5", "36", "49")) & 
+             (PBMC.subset$cell.type.coarse == "CD4+ T")
+PBMC.subset$cell.type.fine[idx_low_a] <- "CD4n T IL7Rlow a"
+
+
 # Save Result
-# saveRDS(PBMC.subset, file = "results/PBMC_integrated_clustered.rds")
+# saveRDS(PBMC.subset, file = "data/PBMC_subset_revision_for_supplementary.rds")
 
 message("Pipeline Completed Successfully.")
