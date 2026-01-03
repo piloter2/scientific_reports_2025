@@ -1,23 +1,23 @@
 
 # Integrated proteomic and single-cell transcriptomic profiling elucidates immunomodulatory effects of L-serine in autism spectrum disorder
 -------
-###### Author: 
-###### Contact: 
+###### Author:  *Jaemyung Jang*, Seungeun Yeo, Jong Pil Kim, Soonbong Baek, Hyun Jin Jung, Su-Kyeong Hwang, Youngshik Choe a
+
 -------
 ## 📌 Overview
 This repository contains the computational workflow for analyzing single-cell RNA sequencing (scRNA-seq) data from PBMC samples derived from Autism Spectrum Disorder (ASD) patients treated with L-serine compared to Healthy Controls (HC).
 
 The analysis pipeline focuses on:
 
-Global Profiling: Characterizing PBMC subsets and cell type composition changes.
+- Global Profiling: Characterizing PBMC subsets and cell type composition changes.
 
-Gene Scoring: Evaluating ASD-risk gene expression (SFARI, TADA) and inflammatory signatures.
+- Gene Scoring: Evaluating ASD-risk gene expression (SFARI, TADA) and inflammatory signatures.
 
-CD4+ T Cell Dynamics: Trajectory inference (Slingshot), lineage-based differential expression (tradeSeq), and identification of "rescue" genes reversed by treatment.
+- CD4+ T Cell Dynamics: Trajectory inference (Slingshot), lineage-based differential expression (tradeSeq), and identification of "rescue" genes reversed by treatment.
 
-Network Analysis: Co-expression network analysis (hdWGCNA) on CD8+ T cells.
+- Network Analysis: Co-expression network analysis (hdWGCNA) on CD8+ T cells.
 
-Cell-Cell Communication: Interaction analysis using CellPhoneDB v5.
+- Cell-Cell Communication: Interaction analysis using CellPhoneDB v5.
 
 🛠 Prerequisites & Installation
 ### R
@@ -25,28 +25,25 @@ R Environment (v4.5.2)
 Key R packages required for the analysis:
 
 ##### Core & Visualization 
-'''
+```
 install.packages(c("Seurat", "dplyr", "ggplot2", "ggpubr", "pheatmap", "viridis", "ggsci"))
-'''
+```
 ##### Bioconductor
-'''
+```
 BiocManager::install(c("Slingshot", "tradeSeq", "UCell", "Nebulosa", "dittoSeq", "clusterProfiler", "ReactomePA", "org.Hs.eg.db"))
-'''
+```
 ##### Networks
-'''
+```
 devtools::install_github("smorabit/hdWGCNA") 
 library(hdWGCNA)
 library(WGCNA)
-'''
+```
 ### Python Environment (v3.9+)
 
 Install the required Python packages using pip:
-Plaintext
-pandas
-anndata
-matplotlib
-cellphonedb>=5.0.0
-ktplotspy
+```
+python -m pip install Plaintext pandas anndata  matplotlib cellphonedb>=5.0.0 ktplotspy
+```
 
 ## 🚀 Workflow Instructions
 ### Step 1: Global PBMC Analysis (R)
