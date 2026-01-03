@@ -1,9 +1,8 @@
 
 # Integrated proteomic and single-cell transcriptomic profiling elucidates immunomodulatory effects of L-serine in autism spectrum disorder
 -------
-###### Author: Jaemyung Jang (Korea Brain Research Institute)
-###### Contact: piloter2@kbri.re.kr
-###### Date: January 2026
+###### Author: 
+###### Contact: 
 -------
 ## 📌 Overview
 This repository contains the computational workflow for analyzing single-cell RNA sequencing (scRNA-seq) data from PBMC samples derived from Autism Spectrum Disorder (ASD) patients treated with L-serine compared to Healthy Controls (HC).
@@ -26,19 +25,19 @@ R Environment (v4.5.2)
 Key R packages required for the analysis:
 
 ##### Core & Visualization 
-
+'''
 install.packages(c("Seurat", "dplyr", "ggplot2", "ggpubr", "pheatmap", "viridis", "ggsci"))
-
+'''
 ##### Bioconductor
-
+'''
 BiocManager::install(c("Slingshot", "tradeSeq", "UCell", "Nebulosa", "dittoSeq", "clusterProfiler", "ReactomePA", "org.Hs.eg.db"))
-
+'''
 ##### Networks
-
+'''
 devtools::install_github("smorabit/hdWGCNA") 
 library(hdWGCNA)
 library(WGCNA)
-
+'''
 ### Python Environment (v3.9+)
 
 Install the required Python packages using pip:
