@@ -1,0 +1,43 @@
+
+path_in_genes <- paste0(pathREF,"/","NIHMS1516311-supplement-7.xlsx")
+library(openxlsx)
+cellcycle<-read.xlsx(path_in_genes)
+g1s.genes <- cellcycle %>% filter(Phase == "G1/S") %>% select(Gene)
+s.genes <- cellcycle %>% filter(Phase == "S") %>% select(Gene)
+g2m.genes <- cellcycle %>% filter(Phase == "G2/M") %>% select(Gene)
+m.genes <- cellcycle %>% filter(Phase == "M") %>% select(Gene)
+mg1.genes <- cellcycle %>% filter(Phase == "M/G1") %>% select(Gene)
+
+g1s.genes <- as.character(g1s.genes$Gene)
+s.genes <- as.character(s.genes$Gene)
+g2m.genes <- as.character(g2m.genes$Gene)
+m.genes <- as.character(m.genes$Gene)
+mg1.genes <- as.character(mg1.genes$Gene)
+
+
+microglia_set<-lapply(microglia_REF, function(obj){
+  obj <- obj %>% 
+         NormalizeData() %>%
+         CellCycleScoring(s.features = intersect(rownames(obj),s.genes), g2m.features = intersect(rownames(obj),g2m.genes))
+  return(obj)
+  })
+
+mg.combined <- c()
+mg.combined <- microglia_set %>% 
+  FindIntegrationAnchors(dims = 1:30, anchor.features = 2500) %>%
+  IntegrateData(dims = 1:30)
+
+DefaultAssay(mg.combined) <- "RNA"
+
+ # image_name <- paste0(pathREF,"/microglia_",format(Sys.time(), "%x %H-%M-%S"), ".Rdata")
+ # save.image(image_name)
+# load(paste0(pathREF,"/microglia_2021-05-04 10-42-10.Rdata"))
+
+data.filt <- mg.combined %>% 
+            SCTransform(assay = 'RNA',new.assay.name = 'SCT',  vars.to.regress = c('percent.mt', 'nFeature_RNA', 'nCount_RNA')) %>%
+            CellCycleScoring(s.features = intersect(rownames(mg.combined),s.genes), g2m.features = intersect(rownames(mg.combined),g2m.genes), set.ident = TRUE) %>%
+            SCTransform(vars.to.regress = c('percent.mt', 'nFeature_RNA', 'nCount_RNA', 'S.Score', 'G2M.Score'), assay = 'SCT', new.assay.name = 'SCT') %>% #runs on the assay already normalized/transformed. 
+            RunICA(nics = 20, verbose = FALSE) %>%
+            RunTSNE(dims = 1:20, reduction="ica") %>%
+            FindNeighbors(dims = 1:20, reduction="ica") %>%
+            FindClusters(resolution = seq(0.4,0.8,0.05))
