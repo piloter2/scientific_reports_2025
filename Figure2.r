@@ -195,6 +195,77 @@ p2e_tada <- ggboxplot(obj_dat@meta.data, x = "cell.type.coarse", y = "signature_
   ggtitle("TADA gene score") +
   theme(axis.title = element_blank())
 
+gts_pairwise.t.test <- function(data, variable, by, ...) {
+  pairwise.t.test(data[[variable]], data[[by]],  alternative = "greater", p.adj = "bonferroni", pool.sd=FALSE) %>% 
+    broom::tidy() %>%
+    mutate(label = glue::glue("**{group2} vs. {group1}**")) %>%
+    select(label, p.value) %>%
+    spread(label, p.value)
+}
+
+target_cols <- colnames(obj_dat@meta.data)[c(61, 59:60)]
+
+# ==============================================================================
+# 8. Supplementary Data 1: Scoring
+# ==============================================================================
+
+obj_dat@meta.data %>%
+  as_tibble() %>%
+  select(cell.type.coarse, id_new, all_of(target_cols)) %>%
+  dplyr::mutate(
+    am = factor(id_new, labels = c("AO", "BO", "Healthy Control")),
+    across(all_of(target_cols), ~ as.numeric(.x)) 
+  ) %>%
+  tbl_strata(
+    strata = cell.type.coarse,
+    ~ .x |> 
+      tbl_summary(
+        by = am,
+        include = all_of(target_cols),
+        type = list(everything() ~ "continuous"), 
+        statistic = everything() ~ "{mean} ({sd})",
+        missing = "no"
+      ) |> 
+      add_stat(fns = everything() ~ gts_pairwise.t.test) %>%
+      modify_fmt_fun(any_of(c('**AO vs. BO**', '**BO vs. Healthy Control**', '**Healthy Control vs. BO**', '**Healthy Control vs. AO**')) ~ style_pvalue)
+  ) %>%
+  as_gt() #|> 
+  # gt::gtsave(filename = paste0("/mnt/data/working/1.scRNAseq/ASD_PBMC/results/SupplementaryTable_1_",format(Sys.time(), "%Y-%m-%d %H-%M-%S"),".html"))
+
+
+final_table <- obj_dat@meta.data %>%
+  as_tibble() %>%
+  select(cell.type.coarse, id_new, all_of(target_cols)) %>%
+  dplyr::mutate(
+    am = dplyr::case_match(id_new,
+      "0. Reference" ~ "Healthy Control",
+      "2. Autism"    ~ "BO",
+      "3. Treat"     ~ "AO"
+    ),
+    am = factor(am, levels = c("AO", "BO", "Healthy Control")),
+    across(all_of(target_cols), ~ as.numeric(.x)) 
+  ) %>%
+  filter(!is.na(am)) %>% 
+  tbl_strata(
+    strata = cell.type.coarse,
+    ~ .x |> 
+      tbl_summary(
+        by = am,
+        include = all_of(target_cols),
+        type = list(everything() ~ "continuous"), # 연속형 강제
+        statistic = everything() ~ "{mean} ({sd})",
+        missing = "no"
+      ) |> 
+      add_stat(fns = everything() ~ gts_pairwise.t.test) %>%
+      modify_fmt_fun(any_of(c(
+        '**AO vs. BO**', 
+        '**BO vs. Healthy Control**', 
+        '**AO vs. Healthy Control**'
+      )) ~ style_pvalue)
+  )
+
+final_df <- as_tibble(final_table, col_labels = TRUE)
+
 # ==============================================================================
 # 8. Supplementary Figure 2B: Inflammatory Cytokines & GO Terms
 # ==============================================================================
