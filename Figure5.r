@@ -224,8 +224,6 @@ p_volcano <- DMEs %>%
     axis.text = element_text(size = 14)
   )
 
-ggsave(file.path(CACHE_DIR, "Figure5_CD8_VC_new.pdf"), p_volcano, width = 8, height = 7)
-
 # --- 4.4 Module Visualization (UMAP) ---
 cd8_obj <- RunModuleUMAP(
   cd8_obj,
@@ -254,10 +252,7 @@ p_umap <- ggplot(umap_df, aes(x=UMAP1, y=UMAP2)) +
   theme_minimal() +
   ggtitle("Module UMAP")
 
-ggsave(file.path(CACHE_DIR, "Figure5_CD8_DME_umap.pdf"), p_umap, width = 8, height = 8)
-
 # Hub Gene Network
-pdf(file.path(CACHE_DIR, "Figure5_CD8_Hub_Genes.pdf"), width = 10, height = 10)
 HubGeneNetworkPlot(
   cd8_obj,
   n_hubs = 16, 
@@ -265,8 +260,6 @@ HubGeneNetworkPlot(
   edge_prop = 0.75,
   mods = sig_modules
 )
-dev.off()
-
 
 # ==============================================================================
 # 5. Enrichment Analysis (EnrichR)
