@@ -1,9 +1,5 @@
 
 # Integrated proteomic and single-cell transcriptomic profiling elucidates immunomodulatory effects of L-serine in autism spectrum disorder
--------
-###### Author:  *Jaemyung Jang*, Seungeun Yeo, Jong Pil Kim, Soonbong Baek, Hyun Jin Jung, Su-Kyeong Hwang, Youngshik Choe a
-
--------
 ## 📌 Overview
 This repository contains the computational workflow for analyzing single-cell RNA sequencing (scRNA-seq) data from PBMC samples derived from Autism Spectrum Disorder (ASD) patients treated with L-serine compared to Healthy Controls (HC).
 
@@ -18,6 +14,9 @@ The analysis pipeline focuses on:
 - Network Analysis: Co-expression network analysis (hdWGCNA) on CD8+ T cells.
 
 - Cell-Cell Communication: Interaction analysis using CellPhoneDB v5.
+-------
+##### Author:  *Jaemyung Jang*, Seungeun Yeo, Jong Pil Kim, Soonbong Baek, Hyun Jin Jung, Su-Kyeong Hwang, Youngshik Choe
+-------
 
 🛠 Prerequisites & Installation
 ### R
